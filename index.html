@@ -106,8 +106,10 @@
                 <p class="help-text">Verifique quais mods estão faltando ou sobrando na sua pasta.</p>
                 
                 <div class="form-group mt-3">
-                    <label for="modpack-code"><i class="fa-solid fa-barcode"></i> 1. Cole o Código do Modpack</label>
-                    <textarea id="modpack-code" rows="2" placeholder="Cole aqui o código que o dono do servidor mandou..."></textarea>
+                    <label for="modpack-selector"><i class="fa-solid fa-list-ul"></i> 1. Qual Modpack você quer comparar?</label>
+                    <select id="modpack-selector" class="w-100" style="padding: 0.8rem; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 8px;">
+                        <option value="">Carregando modpacks...</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
@@ -138,6 +140,11 @@
                         <i class="fa-solid fa-circle-check" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                         <h3>Sua pasta está perfeita!</h3>
                         <p>Você tem exatamente os mesmos mods do servidor.</p>
+                    </div>
+                    
+                    <div id="download-full-pack" style="display: none; text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--panel-border);">
+                        <p style="margin-bottom: 1rem; color: var(--text-muted);">Muitos mods faltando? Você pode baixar o pacote completo de uma vez:</p>
+                        <a href="#" target="_blank" id="full-pack-btn" class="btn-primary" style="display: inline-block; text-decoration: none; padding: 1rem 2rem; border-radius: 50px; background: linear-gradient(135deg, #10b981, #059669);"><i class="fa-brands fa-google-drive"></i> Baixar Modpack Completo</a>
                     </div>
                 </div>
             </div>
