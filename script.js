@@ -274,11 +274,52 @@ function loadState() {
     }
 }
 
+// ==========================================
+// SECRET ADMIN SYSTEM
+// ==========================================
+let secretClicks = 0;
+document.getElementById('secret-logo').addEventListener('click', () => {
+    secretClicks++;
+    if (secretClicks >= 5) {
+        secretClicks = 0;
+        if (localStorage.getItem('isAdmin') !== 'true') {
+            const pwd = prompt("Senha do Admin:");
+            if (pwd === "blaze") { // Senha secreta
+                localStorage.setItem('isAdmin', 'true');
+                unlockAdmin();
+                showToast("Modo Admin Desbloqueado!");
+            } else {
+                showToast("Senha incorreta!", true);
+            }
+        } else {
+            // Se já for admin e clicar 5x, ele desloga
+            if(confirm("Deseja sair do Modo Admin?")) {
+                localStorage.removeItem('isAdmin');
+                unlockAdmin();
+                showToast("Modo Admin Bloqueado.");
+            }
+        }
+    }
+});
+
+function unlockAdmin() {
+    const isAd = localStorage.getItem('isAdmin') === 'true';
+    document.getElementById('tab-announcer').style.display = isAd ? 'flex' : 'none';
+    document.querySelector('.admin-panel').style.display = isAd ? 'block' : 'none';
+    
+    // Se bloqueou o admin enquanto estava na aba anunciador, joga pro comparador
+    if (!isAd && document.getElementById('tab-announcer').classList.contains('active')) {
+        switchTab('comparator');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadState();
+    unlockAdmin();
     inputsToSave.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.addEventListener('input', saveState);
+    });
 });
 
 // ==========================================
@@ -384,10 +425,10 @@ function compareMods() {
     resultsDiv.style.display = 'block';
     
     if (extraMods.length === 0 && missingMods.length === 0) {
-        document.querySelector('.mods-section').style.display = 'none';
+        document.querySelector('#compare-results .mods-section').style.display = 'none';
         perfectDiv.style.display = 'block';
     } else {
-        document.querySelector('.mods-section').style.display = 'grid';
+        document.querySelector('#compare-results .mods-section').style.display = 'grid';
         perfectDiv.style.display = 'none';
         
         // Render Delete List
