@@ -1,5 +1,18 @@
+// ==========================================
+// CONFIGURAÇÃO DOS MODPACKS PARA OS JOGADORES
+// ==========================================
+const MODPACKS_CONFIG = [
+    {
+        nome: "A Era das Máquinas v1.5", // Nome que aparece no menu
+        codigo: "Exemplo123", // Código gerado pela área do Admin
+        link: "https://drive.google.com/..." // Link completo do drive
+    }
+];
+
 let removedMods = [];
 let addedMods = [];
+
+
 
 function addRemovedMod() {
     const input = document.getElementById('removed-input');
@@ -316,11 +329,31 @@ function unlockAdmin() {
 document.addEventListener('DOMContentLoaded', () => {
     loadState();
     unlockAdmin();
+    populateModpacks(); // Preenche o seletor
     inputsToSave.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.addEventListener('input', saveState);
     });
 });
+
+function populateModpacks() {
+    const selector = document.getElementById('modpack-selector');
+    if (!selector) return;
+    
+    selector.innerHTML = '';
+    
+    if (MODPACKS_CONFIG.length === 0) {
+        selector.innerHTML = '<option value="">Nenhum modpack cadastrado pelo dono</option>';
+        return;
+    }
+    
+    // Adiciona uma opção vazia no início
+    selector.innerHTML = '<option value="">-- Escolha um Modpack --</option>';
+    
+    MODPACKS_CONFIG.forEach((pack, index) => {
+        selector.innerHTML += `<option value="${index}">${pack.nome}</option>`;
+    });
+}
 
 // ==========================================
 // TABS & COMPARATOR LOGIC
@@ -403,13 +436,16 @@ function copyCode() {
 }
 
 async function compareMods() {
-    const codeInput = document.getElementById('modpack-code').value.trim();
+    const selector = document.getElementById('modpack-selector');
     const folderInput = document.getElementById('player-folder');
     
-    if (!codeInput) {
-        showToast("Cole o código do Modpack primeiro!", true);
+    if (!selector.value) {
+        showToast("Selecione um modpack no menu primeiro!", true);
         return;
     }
+    
+    const selectedPack = MODPACKS_CONFIG[selector.value];
+    const codeInput = selectedPack.codigo;
     
     if (!folderInput.files || folderInput.files.length === 0) {
         showToast("Selecione a sua pasta de mods!", true);
@@ -471,8 +507,18 @@ async function compareMods() {
             missingMods.forEach(mod => {
                 downloadList.innerHTML += `<li><div class="mod-info"><span class="mod-name">${mod}</span></div></li>`;
             });
+            // Show Full Download button if there are missing mods
+            if (selectedPack.link && selectedPack.link !== "") {
+                const btnContainer = document.getElementById('download-full-pack');
+                const btn = document.getElementById('full-pack-btn');
+                btn.href = selectedPack.link;
+                btnContainer.style.display = 'block';
+            } else {
+                document.getElementById('download-full-pack').style.display = 'none';
+            }
         } else {
             downloadList.innerHTML = '<li style="justify-content:center; color:var(--text-muted);">Nenhum mod faltando.</li>';
+            document.getElementById('download-full-pack').style.display = 'none';
         }
     }
 }
