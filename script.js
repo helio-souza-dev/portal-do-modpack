@@ -1,13 +1,7 @@
 // ==========================================
-// CONFIGURAÇÃO DOS MODPACKS PARA OS JOGADORES
+// SCRIPT PRINCIPAL
+// O MODPACKS_CONFIG agora vem do arquivo modpacks.js
 // ==========================================
-const MODPACKS_CONFIG = [
-    {
-        nome: "A Era das Máquinas v1.5", // Nome que aparece no menu
-        codigo: "Exemplo123", // Código gerado pela área do Admin
-        link: "https://drive.google.com/..." // Link completo do drive
-    }
-];
 
 let removedMods = [];
 let addedMods = [];
@@ -318,11 +312,15 @@ document.getElementById('secret-logo').addEventListener('click', () => {
 function unlockAdmin() {
     const isAd = localStorage.getItem('isAdmin') === 'true';
     document.getElementById('tab-announcer').style.display = isAd ? 'flex' : 'none';
-    document.querySelector('.admin-panel').style.display = isAd ? 'block' : 'none';
+    document.querySelectorAll('.admin-panel').forEach(p => p.style.display = isAd ? 'block' : 'none');
     
     // Se bloqueou o admin enquanto estava na aba anunciador, joga pro comparador
     if (!isAd && document.getElementById('tab-announcer').classList.contains('active')) {
         switchTab('comparator');
+    }
+
+    if (isAd) {
+        renderManagerTable();
     }
 }
 
@@ -353,6 +351,76 @@ function populateModpacks() {
     MODPACKS_CONFIG.forEach((pack, index) => {
         selector.innerHTML += `<option value="${index}">${pack.nome}</option>`;
     });
+}
+
+// ==========================================
+// GERENCIADOR DE MODPACKS (ADMIN)
+// ==========================================
+
+function renderManagerTable() {
+    const tbody = document.getElementById('manager-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    MODPACKS_CONFIG.forEach((pack, index) => {
+        tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid var(--panel-border);">
+                <td style="padding: 0.8rem 0.5rem;"><strong>${pack.nome}</strong></td>
+                <td style="padding: 0.8rem 0.5rem; color: var(--text-muted);">${pack.codigo}</td>
+                <td style="padding: 0.8rem 0.5rem;">
+                    <button type="button" onclick="deleteModpack(${index})" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.1rem;"><i class="fa-solid fa-trash-can"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function addModpackToManager() {
+    const name = document.getElementById('mgr-name').value.trim();
+    const code = document.getElementById('mgr-code').value.trim();
+    const link = document.getElementById('mgr-link').value.trim();
+    
+    if (!name || !code) {
+        showToast("Preencha pelo menos o Nome e o Código!", true);
+        return;
+    }
+    
+    MODPACKS_CONFIG.push({ nome: name, codigo: code, link: link });
+    
+    document.getElementById('mgr-name').value = '';
+    document.getElementById('mgr-code').value = '';
+    document.getElementById('mgr-link').value = '';
+    
+    renderManagerTable();
+    populateModpacks();
+    showToast("Modpack adicionado!");
+}
+
+function deleteModpack(index) {
+    if (confirm("Tem certeza que deseja apagar este modpack da lista?")) {
+        MODPACKS_CONFIG.splice(index, 1);
+        renderManagerTable();
+        populateModpacks();
+    }
+}
+
+function exportConfig() {
+    // Gera o conteúdo do arquivo modpacks.js
+    const fileContent = `const MODPACKS_CONFIG = ${JSON.stringify(MODPACKS_CONFIG, null, 4)};`;
+    
+    // Cria um Blob e força o download
+    const blob = new Blob([fileContent], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'modpacks.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast("Arquivo modpacks.js baixado! Arraste-o para a Vercel.");
 }
 
 // ==========================================

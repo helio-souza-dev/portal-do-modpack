@@ -151,8 +151,8 @@
 
             <!-- Admin Panel -->
             <div class="glass-panel admin-panel" style="display: none;">
-                <h2><i class="fa-solid fa-crown text-admin" style="color: #3b82f6;"></i> Sou o Dono do Servidor</h2>
-                <p class="help-text">Gere o código de sincronização com base na sua pasta atualizada.</p>
+                <h2><i class="fa-solid fa-crown text-admin" style="color: #3b82f6;"></i> Gerador de Código</h2>
+                <p class="help-text">Gere o código minúsculo com base na sua pasta atualizada.</p>
                 
                 <div class="form-group mt-3">
                     <label><i class="fa-solid fa-folder-open"></i> Selecione a sua pasta "mods" oficial</label>
@@ -166,11 +166,53 @@
                 <button type="button" class="btn-primary w-100" style="background: #3b82f6; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);" onclick="generateCode()"><i class="fa-solid fa-qrcode"></i> Gerar Código do Modpack</button>
                 
                 <div class="form-group mt-3" id="generated-code-group" style="display: none;">
-                    <label>Código Gerado (Envie para os jogadores copiar)</label>
+                    <label>Código Gerado (Copie e use no Gerenciador abaixo)</label>
                     <div class="input-with-button">
                         <input type="text" id="generated-code" readonly>
                         <button type="button" class="btn-icon" style="background: #3b82f6;" onclick="copyCode()"><i class="fa-solid fa-copy"></i></button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Modpack Manager Panel -->
+            <div class="glass-panel admin-panel mt-4" style="display: none; border-color: #f59e0b;">
+                <h2><i class="fa-solid fa-list-check" style="color: #f59e0b;"></i> Gerenciador de Modpacks</h2>
+                <p class="help-text">Cadastre os modpacks que vão aparecer no menu dos jogadores.</p>
+                
+                <div class="manager-form" style="background: var(--input-bg); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <div class="form-group">
+                        <label>Nome do Modpack</label>
+                        <input type="text" id="mgr-name" placeholder="Ex: Era das Máquinas v2">
+                    </div>
+                    <div class="form-group">
+                        <label>Código ByteBin (O que você gerou ali em cima)</label>
+                        <input type="text" id="mgr-code" placeholder="Ex: yZ9x1Ab">
+                    </div>
+                    <div class="form-group">
+                        <label>Link de Download Completo (Drive, Mediafire)</label>
+                        <input type="text" id="mgr-link" placeholder="https://...">
+                    </div>
+                    <button type="button" class="btn-primary w-100" style="background: #f59e0b;" onclick="addModpackToManager()"><i class="fa-solid fa-plus"></i> Adicionar Modpack</button>
+                </div>
+
+                <div class="table-container mt-4" style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; color: var(--text-main); font-size: 0.9rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--panel-border); text-align: left;">
+                                <th style="padding: 0.5rem;">Nome</th>
+                                <th style="padding: 0.5rem;">Código</th>
+                                <th style="padding: 0.5rem;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="manager-table-body">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="export-section mt-4" style="text-align: center; padding-top: 1rem; border-top: 1px dashed var(--panel-border);">
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Quando terminar de editar, exporte o arquivo e arraste-o para a Vercel!</p>
+                    <button type="button" class="btn-primary" style="background: #ef4444; padding: 0.8rem 2rem; border-radius: 50px;" onclick="exportConfig()"><i class="fa-solid fa-file-export"></i> Baixar modpacks.js</button>
                 </div>
             </div>
         </section>
@@ -178,6 +220,7 @@
         <div id="toast" class="toast">Mensagem enviada com sucesso!</div>
     </main>
 
+    <script src="modpacks.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
