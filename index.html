@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modpack Updater | Gerador de Anúncios</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="background-effects">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+
+    <main class="container">
+        <header>
+            <div class="logo-container">
+                <i class="fa-solid fa-cube logo-icon"></i>
+            </div>
+            <h1>Modpack <span>Updater</span></h1>
+            <p>Gerencie as atualizações e sincronize os mods do seu servidor.</p>
+            
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-announcer" onclick="switchTab('announcer')"><i class="fa-solid fa-bullhorn"></i> Criar Anúncio</button>
+                <button class="tab-btn" id="tab-comparator" onclick="switchTab('comparator')"><i class="fa-solid fa-code-compare"></i> Comparador de Mods</button>
+            </div>
+        </header>
+
+        <!-- ANNOUNCER VIEW -->
+        <section id="announcer-view" class="view-content active">
+            <div class="glass-panel">
+                <form id="updater-form" onsubmit="event.preventDefault();">
+                <div class="form-group row">
+                    <div class="col">
+                        <label for="version"><i class="fa-solid fa-tag"></i> Nome / Versão da Atualização</label>
+                        <input type="text" id="version" placeholder="Ex: Atualização 1.5 - A Era das Máquinas" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="mention"><i class="fa-solid fa-bell"></i> Mencionar (Notificar usuários)</label>
+                    <input type="text" id="mention" placeholder="Ex: @everyone, @here ou <@&123456789> (ID do Cargo)">
+                </div>
+
+                <div class="form-group">
+                    <label for="description"><i class="fa-solid fa-align-left"></i> Notas da Atualização (Opcional)</label>
+                    <textarea id="description" rows="3" placeholder="O que mudou em linhas gerais? (Ex: Corrigimos bugs de performance e adicionamos novos mods de tecnologia.)"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="pack-link"><i class="fa-solid fa-download"></i> Link para Baixar o Modpack Completo</label>
+                    <input type="url" id="pack-link" placeholder="Ex: https://mediafire.com/..." required>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="mods-section">
+                    <div class="mods-col removed-mods">
+                        <h3><i class="fa-solid fa-trash-can text-danger"></i> Mods Removidos</h3>
+                        <div class="input-with-button">
+                            <input type="text" id="removed-input" placeholder="Nome do mod removido">
+                            <button type="button" class="btn-icon add-btn" onclick="addRemovedMod()"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <ul id="removed-list" class="dynamic-list"></ul>
+                    </div>
+
+                    <div class="mods-col added-mods">
+                        <h3><i class="fa-solid fa-square-plus text-success"></i> Mods Adicionados</h3>
+                        <div class="input-with-button stacked">
+                            <input type="text" id="added-name-input" placeholder="Nome do mod adicionado">
+                            <input type="url" id="added-link-input" placeholder="Link do mod (CurseForge/Modrinth)">
+                            <button type="button" class="btn-icon add-btn mt-2 w-100" onclick="addAddedMod()"><i class="fa-solid fa-plus"></i> Adicionar à Lista</button>
+                        </div>
+                        <ul id="added-list" class="dynamic-list"></ul>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-group webhook-group">
+                    <label for="webhook-url"><i class="fa-brands fa-discord"></i> URL do Webhook do Discord</label>
+                    <p class="help-text">Vá nas configurações do Canal > Integrações > Webhooks > Copiar URL do Webhook.</p>
+                    <input type="password" id="webhook-url" placeholder="https://discord.com/api/webhooks/..." required>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="btn-primary" id="send-btn" onclick="sendToDiscord()"><i class="fa-solid fa-paper-plane"></i> Enviar Anúncio para o Discord</button>
+                </div>
+                
+                <div class="debug-panel" style="margin-top: 2rem; background: #000; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.8rem; display: none;" id="debug-container">
+                    <h4 style="color: #10b981; margin-bottom: 0.5rem;">Logs do Sistema:</h4>
+                    <pre id="debug-log" style="color: #fff; white-space: pre-wrap; word-break: break-all;"></pre>
+                </div>
+            </form>
+            </div>
+        </section>
+
+        <!-- COMPARATOR VIEW -->
+        <section id="comparator-view" class="view-content" style="display: none;">
+            <!-- Player Panel -->
+            <div class="glass-panel mb-4">
+                <h2><i class="fa-solid fa-user text-primary"></i> Sou Jogador</h2>
+                <p class="help-text">Verifique quais mods estão faltando ou sobrando na sua pasta.</p>
+                
+                <div class="form-group mt-3">
+                    <label for="modpack-code"><i class="fa-solid fa-barcode"></i> 1. Cole o Código do Modpack</label>
+                    <textarea id="modpack-code" rows="2" placeholder="Cole aqui o código que o dono do servidor mandou..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fa-solid fa-folder-open"></i> 2. Selecione a sua pasta "mods"</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="player-folder" webkitdirectory directory multiple class="folder-input" onchange="updateFolderName('player')">
+                        <div class="upload-btn"><i class="fa-solid fa-upload"></i> Escolher Pasta</div>
+                        <span id="player-folder-name" class="folder-name-text">Nenhuma pasta selecionada</span>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-primary w-100" id="compare-btn" onclick="compareMods()"><i class="fa-solid fa-magnifying-glass"></i> Comparar Meus Mods</button>
+
+                <!-- Results -->
+                <div id="compare-results" style="display: none; margin-top: 2rem;">
+                    <div class="divider"></div>
+                    <div class="mods-section">
+                        <div class="mods-col removed-mods">
+                            <h3><i class="fa-solid fa-trash-can text-danger"></i> Apague estes arquivos</h3>
+                            <ul id="delete-list" class="dynamic-list"></ul>
+                        </div>
+                        <div class="mods-col added-mods">
+                            <h3><i class="fa-solid fa-download text-success"></i> Estão faltando</h3>
+                            <ul id="download-list" class="dynamic-list"></ul>
+                        </div>
+                    </div>
+                    <div id="perfect-match" style="display: none; text-align: center; padding: 2rem; color: var(--success);">
+                        <i class="fa-solid fa-circle-check" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h3>Sua pasta está perfeita!</h3>
+                        <p>Você tem exatamente os mesmos mods do servidor.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel -->
+            <div class="glass-panel admin-panel">
+                <h2><i class="fa-solid fa-crown text-admin" style="color: #3b82f6;"></i> Sou o Dono do Servidor</h2>
+                <p class="help-text">Gere o código de sincronização com base na sua pasta atualizada.</p>
+                
+                <div class="form-group mt-3">
+                    <label><i class="fa-solid fa-folder-open"></i> Selecione a sua pasta "mods" oficial</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="admin-folder" webkitdirectory directory multiple class="folder-input" onchange="updateFolderName('admin')">
+                        <div class="upload-btn" style="background: #3b82f6;"><i class="fa-solid fa-upload"></i> Escolher Pasta</div>
+                        <span id="admin-folder-name" class="folder-name-text">Nenhuma pasta selecionada</span>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-primary w-100" style="background: #3b82f6; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);" onclick="generateCode()"><i class="fa-solid fa-qrcode"></i> Gerar Código do Modpack</button>
+                
+                <div class="form-group mt-3" id="generated-code-group" style="display: none;">
+                    <label>Código Gerado (Envie para os jogadores copiar)</label>
+                    <div class="input-with-button">
+                        <input type="text" id="generated-code" readonly>
+                        <button type="button" class="btn-icon" style="background: #3b82f6;" onclick="copyCode()"><i class="fa-solid fa-copy"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <div id="toast" class="toast">Mensagem enviada com sucesso!</div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
