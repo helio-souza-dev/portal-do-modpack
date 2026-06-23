@@ -367,26 +367,31 @@ async function generateCode() {
     try {
         const jsonStr = JSON.stringify(files);
         
-        // Comprime usando a API nativa do navegador para diminuir MUITO o tamanho
-        const stream = new Blob([jsonStr]).stream().pipeThrough(new CompressionStream('deflate-raw'));
-        const buffer = await new Response(stream).arrayBuffer();
+        showToast("Enviando para a nuvem... Aguarde.");
         
-        // Converte para Base64
-        const bytes = new Uint8Array(buffer);
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        const code = btoa(binary);
+        // Envia para o ByteBin (Servidor gratuito focado na comunidade de Minecraft)
+        const response = await fetch('https://bytebin.lucko.me/post', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'Modpack-Updater-Web'
+            },
+            body: jsonStr
+        });
+        
+        if (!response.ok) throw new Error("Erro na API do ByteBin");
+        
+        const data = await response.json();
+        const code = data.key; // O código minúsculo, ex: "Yx9Z"
         
         const output = document.getElementById('generated-code');
         output.value = code;
         document.getElementById('generated-code-group').style.display = 'block';
         
-        showToast("Código gerado e comprimido com sucesso!");
+        showToast("Código gerado com sucesso! Muito menor agora.");
     } catch (e) {
-        console.error("Erro ao gerar o código:", e);
-        showToast("Erro ao gerar o código.", true);
+        console.error("Erro ao gerar o código na nuvem:", e);
+        showToast("Erro de conexão. A nuvem pode estar fora do ar.", true);
     }
 }
 
@@ -413,22 +418,16 @@ async function compareMods() {
 
     let officialMods = [];
     try {
-        // Descomprime o Base64 reverso
-        const binary = atob(codeInput);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-        }
+        showToast("Baixando lista de mods da nuvem... Aguarde.");
         
-        // Descomprime usando a API nativa
-        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-        const buffer = await new Response(stream).arrayBuffer();
-        const jsonStr = new TextDecoder().decode(buffer);
+        // Puxa do ByteBin
+        const response = await fetch(`https://bytebin.lucko.me/${codeInput}`);
+        if (!response.ok) throw new Error("Código não encontrado");
         
-        officialMods = JSON.parse(jsonStr);
+        officialMods = await response.json();
     } catch (e) {
-        console.error("Erro de descompressão:", e);
-        showToast("Código inválido ou corrompido! Peça um novo código.", true);
+        console.error("Erro ao baixar da nuvem:", e);
+        showToast("Código inválido, expirado ou nuvem fora do ar!", true);
         return;
     }
 
