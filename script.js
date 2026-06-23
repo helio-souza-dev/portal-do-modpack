@@ -195,7 +195,7 @@ async function sendToDiscord() {
 
     embed.fields.push({
         name: "🔍 **NÃO SABE QUE MOD FALTA?**",
-        value: `> 🔗 **[Use o Comparador de Mods](https://portal-do-modpack-5i3yhj2nt-saragospel30-3223s-projects.vercel.app/)**`,
+        value: `> 🔗 **[Use o Comparador de Mods](https://portal-do-modpack.vercel.app/)**`,
         inline: false
     });
 
