@@ -348,14 +348,13 @@ function updateFolderName(type) {
     }
 }
 
-function generateCode() {
+async function generateCode() {
     const input = document.getElementById('admin-folder');
     if (!input.files || input.files.length === 0) {
         showToast("Selecione a sua pasta de mods primeiro!", true);
         return;
     }
 
-    // Pega apenas os arquivos .jar
     const files = Array.from(input.files)
         .filter(f => f.name.endsWith('.jar'))
         .map(f => f.name);
@@ -365,15 +364,30 @@ function generateCode() {
         return;
     }
 
-    // Transforma a lista de nomes num JSON e depois comprime em Base64 para ficar um "Código" amigável
-    const jsonStr = JSON.stringify(files);
-    const code = btoa(unescape(encodeURIComponent(jsonStr)));
-    
-    const output = document.getElementById('generated-code');
-    output.value = code;
-    document.getElementById('generated-code-group').style.display = 'block';
-    
-    showToast("Código gerado com sucesso! Envie para seus jogadores.");
+    try {
+        const jsonStr = JSON.stringify(files);
+        
+        // Comprime usando a API nativa do navegador para diminuir MUITO o tamanho
+        const stream = new Blob([jsonStr]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+        const buffer = await new Response(stream).arrayBuffer();
+        
+        // Converte para Base64
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        const code = btoa(binary);
+        
+        const output = document.getElementById('generated-code');
+        output.value = code;
+        document.getElementById('generated-code-group').style.display = 'block';
+        
+        showToast("Código gerado e comprimido com sucesso!");
+    } catch (e) {
+        console.error("Erro ao gerar o código:", e);
+        showToast("Erro ao gerar o código.", true);
+    }
 }
 
 function copyCode() {
@@ -383,7 +397,7 @@ function copyCode() {
     showToast("Código copiado para a área de transferência!");
 }
 
-function compareMods() {
+async function compareMods() {
     const codeInput = document.getElementById('modpack-code').value.trim();
     const folderInput = document.getElementById('player-folder');
     
@@ -399,11 +413,22 @@ function compareMods() {
 
     let officialMods = [];
     try {
-        // Descomprime o código Base64
-        const jsonStr = decodeURIComponent(escape(atob(codeInput)));
+        // Descomprime o Base64 reverso
+        const binary = atob(codeInput);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        
+        // Descomprime usando a API nativa
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        const buffer = await new Response(stream).arrayBuffer();
+        const jsonStr = new TextDecoder().decode(buffer);
+        
         officialMods = JSON.parse(jsonStr);
     } catch (e) {
-        showToast("Código inválido! Peça o código correto para o dono.", true);
+        console.error("Erro de descompressão:", e);
+        showToast("Código inválido ou corrompido! Peça um novo código.", true);
         return;
     }
 
